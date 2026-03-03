@@ -60,14 +60,14 @@
   /* ─── CURSOR GLOW ─── */
   .cursor-glow {
     position: fixed;
-    width: 600px;
-    height: 600px;
+    width: 700px;
+    height: 700px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(0,229,160,0.06) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(0,229,160,0.22) 0%, rgba(0,229,160,0.10) 25%, rgba(0,229,160,0.03) 55%, transparent 70%);
     pointer-events: none;
     z-index: 1;
     transform: translate(-50%, -50%);
-    transition: left 0.3s ease, top 0.3s ease;
+    transition: left 0.12s ease, top 0.12s ease;
   }
 
   /* ─── NAV ─── */
@@ -683,18 +683,19 @@
 
   .particle {
     position: absolute;
-    width: 2px;
-    height: 2px;
-    background: var(--accent);
-    border-radius: 50%;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--accent);
     opacity: 0;
     animation: float linear infinite;
+    white-space: nowrap;
+    user-select: none;
   }
 
   @keyframes float {
-    0% { opacity: 0; transform: translateY(100vh) scale(0); }
-    10% { opacity: 0.6; }
-    90% { opacity: 0.2; }
+    0%   { opacity: 0; transform: translateY(100vh) scale(0.6); }
+    10%  { opacity: 0.32; }
+    90%  { opacity: 0.10; }
     100% { opacity: 0; transform: translateY(-10vh) scale(1); }
   }
 
@@ -737,6 +738,52 @@
     height: 1px;
     overflow: hidden;
     clip: rect(0,0,0,0);
+  }
+
+  /* ─── FX TOGGLE ─── */
+  .fx-toggle {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.4rem 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s;
+    user-select: none;
+  }
+
+  .fx-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .fx-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    transition: all 0.3s;
+    box-shadow: 0 0 6px rgba(0,229,160,0.6);
+  }
+
+  .fx-toggle.fx-off .fx-dot {
+    background: var(--text-muted);
+    box-shadow: none;
+  }
+
+  .fx-toggle.fx-off {
+    opacity: 0.5;
   }
 </style>
 </head>
@@ -1046,6 +1093,11 @@
   &copy; 2026 PETAR IVANCEVIC — BUILT WITH PRECISION
 </footer>
 
+<button class="fx-toggle" id="fxToggle" title="Toggle visual effects">
+  <span class="fx-dot"></span>
+  <span class="fx-label">FX</span>
+</button>
+
 <script>
   // ─── CURSOR GLOW ───
   const glow = document.getElementById('cursorGlow');
@@ -1119,16 +1171,44 @@
   document.querySelectorAll('.skill-bars').forEach(el => barObserver.observe(el));
 
   // ─── PARTICLES ───
+  const codeTokens = ['=>', '{ }', '()', '[]', '//', '&&', '||', ';', '!==', 'fn()', 'const', 'let', '...', '</>', '/>'];
   const particleContainer = document.getElementById('particles');
-  for (let i = 0; i < 30; i++) {
-    const p = document.createElement('div');
+  for (let i = 0; i < 25; i++) {
+    const p = document.createElement('span');
     p.className = 'particle';
+    p.textContent = codeTokens[Math.floor(Math.random() * codeTokens.length)];
     p.style.left = Math.random() * 100 + '%';
-    p.style.animationDuration = (8 + Math.random() * 12) + 's';
-    p.style.animationDelay = Math.random() * 10 + 's';
-    p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+    p.style.animationDuration = (10 + Math.random() * 15) + 's';
+    p.style.animationDelay = Math.random() * 12 + 's';
+    p.style.fontSize = (0.48 + Math.random() * 0.22) + 'rem';
     particleContainer.appendChild(p);
   }
+
+  // ─── FX TOGGLE ───
+  const fxToggle = document.getElementById('fxToggle');
+  const fxCursor = document.getElementById('cursorGlow');
+  const fxParticles = document.getElementById('particles');
+  let fxOn = localStorage.getItem('fxEnabled') !== 'false';
+
+  function applyFx() {
+    if (fxOn) {
+      fxCursor.style.display = '';
+      fxParticles.style.display = '';
+      fxToggle.classList.remove('fx-off');
+    } else {
+      fxCursor.style.display = 'none';
+      fxParticles.style.display = 'none';
+      fxToggle.classList.add('fx-off');
+    }
+  }
+
+  fxToggle.addEventListener('click', () => {
+    fxOn = !fxOn;
+    localStorage.setItem('fxEnabled', fxOn);
+    applyFx();
+  });
+
+  applyFx();
 
   // ─── SMOOTH SCROLL ───
   document.querySelectorAll('a[href^="#"]').forEach(a => {
